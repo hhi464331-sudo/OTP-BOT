@@ -1,6 +1,5 @@
 import os
-import asyncio
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, executor
 from aiohttp import web
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -8,26 +7,30 @@ TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
+# ================= BOT =================
+
 @dp.message_handler(commands=['start'])
 async def start(msg: types.Message):
     await msg.reply("Bot is working ✅")
 
-# web server for render
-async def web_server():
-    async def handler(request):
-        return web.Response(text="Bot Alive")
+# ================= WEB SERVER =================
 
+async def handle(request):
+    return web.Response(text="Bot Alive")
+
+async def start_web():
     app = web.Application()
-    app.router.add_get("/", handler)
+    app.router.add_get("/", handle)
 
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 10000)
     await site.start()
 
-async def main():
-    await web_server()
-    await dp.start_polling()
+# ================= MAIN =================
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.create_task(start_web())
+    executor.start_polling(dp, skip_updates=True)
