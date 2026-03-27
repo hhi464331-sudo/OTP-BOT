@@ -22,10 +22,13 @@ async def start_web():
     app = web.Application()
     app.router.add_get("/", handle)
 
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 10000)
-    await site.start()
+    PORT = int(os.environ.get("PORT", 10000))
+
+runner = web.AppRunner(app)
+await runner.setup()
+
+site = web.TCPSite(runner, "0.0.0.0", PORT)
+await site.start()
 
 # ================= MAIN =================
 
